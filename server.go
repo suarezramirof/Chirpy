@@ -21,9 +21,10 @@ func main() {
 		Handler: mux,
 	}
 	mux.Handle("/app/*", http.StripPrefix("/app", apiCfg.middlewareMetricsInc(http.FileServer(http.Dir(".")))))
-	mux.HandleFunc("/healthz", readinessHandler)
-	mux.HandleFunc("/metrics", apiCfg.metricsReader)
-	mux.HandleFunc("/reset", apiCfg.resetMetrics)
+	mux.HandleFunc("GET /api/healthz", readinessHandler)
+	mux.HandleFunc("GET /admin/metrics", apiCfg.metricsReader)
+	mux.HandleFunc("POST /api/validate_chirp", chirpHandler)
+	mux.HandleFunc("/api/reset", apiCfg.resetMetrics)
 	log.Printf("Listening on port %s", port)
 	log.Fatal(srv.ListenAndServe())
 }
