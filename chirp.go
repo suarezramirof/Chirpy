@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -54,4 +55,26 @@ func (cfg *apiConfig) chirpsGetter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondWithJSON(w, http.StatusOK, chirps)
+}
+
+func (cfg *apiConfig) chirpGetter(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	numId, err := strconv.Atoi(id)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get chirp")
+		return
+	}
+	// get chirp from db
+	chirp, err := cfg.DB.GetChirp(numId)
+
+	if err != nil {
+		if err.Error() == "chirp not found" {
+			respondWithError(w, http.StatusNotFound, "Chirp not found")
+			return
+		}
+		respondWithError(w, http.StatusInternalServerError, "Could not get chirp")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, chirp)
 }

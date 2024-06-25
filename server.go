@@ -33,6 +33,7 @@ func main() {
 	mux.HandleFunc("GET /admin/metrics", apiCfg.metricsReader)
 	mux.HandleFunc("POST /api/chirps", apiCfg.chirpHandler)
 	mux.HandleFunc("GET /api/chirps", apiCfg.chirpsGetter)
+	mux.HandleFunc("GET /api/chirps/{id}", apiCfg.chirpGetter)
 	mux.HandleFunc("/api/reset", apiCfg.resetMetrics)
 	log.Printf("Listening on port %s", port)
 	log.Fatal(srv.ListenAndServe())

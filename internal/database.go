@@ -103,3 +103,14 @@ func (db *DB) GetChirps() ([]Chirp, error) {
 	}
 	return chirps, nil
 }
+func (db *DB) GetChirp(id int) (Chirp, error) {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return Chirp{}, err
+	}
+	chirp, ok := dbStructure.Chirps[id]
+	if !ok {
+		return Chirp{}, errors.New("chirp not found")
+	}
+	return chirp, nil
+}
