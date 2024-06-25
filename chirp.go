@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func chirpHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) chirpHandler(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`
 	}
@@ -24,11 +24,15 @@ func chirpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type success struct {
-		Cleaned_body string `json:"cleaned_body"`
-	}
+	cleanedBody := cleanBody(params.Body)
 
-	respondWithJSON(w, 200, success{cleanBody(params.Body)})
+	chirp, err := cfg.DB.CreateChirp(cleanedBody)
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not create chirp")
+		return
+	}
+	respondWithJSON(w, http.StatusCreated, chirp)
 }
 
 func cleanBody(body string) string {
@@ -41,4 +45,13 @@ func cleanBody(body string) string {
 	}
 	joinedString := strings.Join(splitString, " ")
 	return joinedString
+}
+
+func (cfg *apiConfig) chirpsGetter(w http.ResponseWriter, r *http.Request) {
+	chirps, err := cfg.DB.GetChirps()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get chirps")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, chirps)
 }
