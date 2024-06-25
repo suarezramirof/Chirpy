@@ -14,11 +14,23 @@ type DB struct {
 
 type DBStructure struct {
 	Chirps map[int]Chirp `json:"chirps"`
+	Users  map[int]User  `json:"users"`
 }
 
 type Chirp struct {
 	Body string `json:"body"`
 	Id   int    `json:"id"`
+}
+
+type User struct {
+	Email    string `json:"email"`
+	Password []byte `json:"password"`
+	Id       int    `json:"id"`
+}
+
+type CreatedUser struct {
+	Email string `json:"email"`
+	Id    int    `json:"id"`
 }
 
 func NewDB(path string) (*DB, error) {
@@ -33,6 +45,7 @@ func NewDB(path string) (*DB, error) {
 func (db *DB) createDB() error {
 	dbStructure := DBStructure{
 		Chirps: make(map[int]Chirp),
+		Users:  make(map[int]User),
 	}
 	return db.writeDB(dbStructure)
 }
@@ -103,6 +116,7 @@ func (db *DB) GetChirps() ([]Chirp, error) {
 	}
 	return chirps, nil
 }
+
 func (db *DB) GetChirp(id int) (Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
@@ -113,4 +127,36 @@ func (db *DB) GetChirp(id int) (Chirp, error) {
 		return Chirp{}, errors.New("chirp not found")
 	}
 	return chirp, nil
+}
+
+func (db *DB) AddUser(email string, password []byte) (CreatedUser, error) {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return CreatedUser{}, err
+	}
+	userId := len(dbStructure.Users) + 1
+	usr := User{
+		Email:    email,
+		Password: password,
+		Id:       userId,
+	}
+	dbStructure.Users[userId] = usr
+	err = db.writeDB(dbStructure)
+	if err != nil {
+		return CreatedUser{}, err
+	}
+	return CreatedUser{Email: usr.Email, Id: usr.Id}, nil
+}
+
+func (db *DB) GetUser(email string) (User, error) {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return User{}, err
+	}
+	for _, user := range dbStructure.Users {
+		if user.Email == email {
+			return user, nil
+		}
+	}
+	return User{}, errors.New("user not found")
 }
