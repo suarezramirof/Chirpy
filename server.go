@@ -3,20 +3,25 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	database "github.com/suarezramirof/Chirpy/internal"
+	"github.com/joho/godotenv"
 )
 
 type apiConfig struct {
 	fileserverHits int
 	DB *database.DB
+	jwtSecret string
 }
 
 func main() {
+	godotenv.Load()
 	const port = "8080"
 
 	apiCfg := apiConfig{
 		fileserverHits: 0,
+		jwtSecret: os.Getenv("JWT_SECRET"),
 	}
 	mux := http.NewServeMux()
 	srv := &http.Server{
