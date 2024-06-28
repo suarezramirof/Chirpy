@@ -4,8 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	database "github.com/suarezramirof/Chirpy/internal"
+	database "github.com/suarezramirof/Chirpy/internal/database"
 	"github.com/joho/godotenv"
 )
 
@@ -39,6 +38,9 @@ func main() {
 	mux.HandleFunc("POST /api/chirps", apiCfg.chirpHandler)
 	mux.HandleFunc("POST /api/users", apiCfg.createUser)
 	mux.HandleFunc("POST /api/login", apiCfg.loginUser)
+	mux.HandleFunc("POST /api/refresh", apiCfg.refreshToken)
+	mux.HandleFunc("POST /api/revoke", apiCfg.revokeToken)
+	mux.HandleFunc("PUT /api/users", apiCfg.updateUser)
 	mux.HandleFunc("GET /api/chirps", apiCfg.chirpsGetter)
 	mux.HandleFunc("GET /api/chirps/{id}", apiCfg.chirpGetter)
 	mux.HandleFunc("/api/reset", apiCfg.resetMetrics)
