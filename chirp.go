@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/suarezramirof/Chirpy/internal/auth"
 )
 
 func (cfg *apiConfig) chirpHandler(w http.ResponseWriter, r *http.Request) {
@@ -12,9 +14,23 @@ func (cfg *apiConfig) chirpHandler(w http.ResponseWriter, r *http.Request) {
 		Body string `json:"body"`
 	}
 
+	token, err := auth.GetBearerToken(r.Header)
+
+	if err != nil {
+		respondWithError(w, 401, "Unauthorized")
+		return
+	}
+
+	userId, err := auth.CheckJWT(token, cfg.jwtSecret)
+
+	if err != nil {
+		respondWithError(w, 401, "Unauthorized")
+		return
+	}
+
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, 500, "Something went wrong")
 		return
@@ -25,9 +41,15 @@ func (cfg *apiConfig) chirpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userIdInt, err := strconv.Atoi(userId)
+	if err != nil {
+		respondWithError(w, 500, "Something went wrong")
+		return
+	}
+
 	cleanedBody := cleanBody(params.Body)
 
-	chirp, err := cfg.DB.CreateChirp(cleanedBody)
+	chirp, err := cfg.DB.CreateChirp(cleanedBody, userIdInt)
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not create chirp")
@@ -77,4 +99,69 @@ func (cfg *apiConfig) chirpGetter(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, chirp)
+}
+
+func (cfg *apiConfig) deleteChirp(w http.ResponseWriter, r *http.Request) {
+	token, err := auth.GetBearerToken(r.Header)
+
+	if err != nil {
+		respondWithError(w, 401, "Unauthorized")
+		return
+	}
+
+	userId, err := auth.CheckJWT(token, cfg.jwtSecret)
+
+	if err != nil {
+		respondWithError(w, 401, "Unauthorized")
+		return
+	}
+
+	numUserId, err := strconv.Atoi(userId)
+
+	if err != nil {
+		respondWithError(w, 500, "Something went wrong")
+		return
+	}
+
+	id := r.PathValue("id")
+	numId, err := strconv.Atoi(id)
+
+	if err != nil {
+		respondWithError(w, 500, "Something went wrong")
+		return
+	}
+
+	chirps, err := cfg.DB.GetChirps()
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get chirps")
+		return
+	}
+
+	var chirpAuthor int
+
+	for _, chirp := range chirps {
+		if chirp.Id == numId {
+			chirpAuthor = chirp.AuthorId
+		}
+	}
+
+	if chirpAuthor == 0 {
+		respondWithError(w, 404, "Chirp not found")
+		return
+	}
+
+	if chirpAuthor != numUserId {
+		respondWithError(w, 403, "Unauthorized")
+		return
+	}
+
+	err = cfg.DB.DeleteChirp(numId)
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not delete chirp")
+		return
+	}
+
+	respondWithJSON(w, 204, "Chirp deleted")
 }

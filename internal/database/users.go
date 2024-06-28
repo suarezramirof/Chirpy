@@ -4,6 +4,12 @@ import (
 	"errors"
 )
 
+type ReturnedUser struct {
+	Email string `json:"email"`
+	Id    int    `json:"id"`
+	IsChirpyRed bool `json:"is_chirpy_red"`
+}
+
 func (db *DB) AddUser(email string, password string) (ReturnedUser, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
@@ -14,6 +20,7 @@ func (db *DB) AddUser(email string, password string) (ReturnedUser, error) {
 		Email:    email,
 		Password: password,
 		Id:       userId,
+		IsChirpyRed: false,
 	}
 	dbStructure.Users[userId] = usr
 	err = db.writeDB(dbStructure)
@@ -52,6 +59,24 @@ func (db *DB) UpdateUser(id int, email string, password string) (ReturnedUser, e
 	if err != nil {
 		return ReturnedUser{}, err
 	}
-	updatedUser := ReturnedUser{Email: usr.Email, Id: usr.Id}
+	updatedUser := ReturnedUser{Email: usr.Email, Id: usr.Id, IsChirpyRed: usr.IsChirpyRed}
 	return updatedUser, nil
+}
+
+func (db *DB) UpgradeUser(id int) error {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return err
+	}
+	usr, ok := dbStructure.Users[id]
+	if !ok {
+		return errors.New("user not found")
+	}
+	usr.IsChirpyRed = true
+	dbStructure.Users[id] = usr
+	err = db.writeDB(dbStructure)
+	if err != nil {
+		return err
+	}
+	return nil
 }

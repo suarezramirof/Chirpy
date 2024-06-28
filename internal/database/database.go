@@ -28,17 +28,14 @@ type DBStructure struct {
 type Chirp struct {
 	Body string `json:"body"`
 	Id   int    `json:"id"`
+	AuthorId int `json:"author_id"`
 }
 
 type User struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Id       int    `json:"id"`
-}
-
-type ReturnedUser struct {
-	Email string `json:"email"`
-	Id    int    `json:"id"`
+	IsChirpyRed bool `json:"is_chirpy_red"`
 }
 
 func NewDB(path string) (*DB, error) {

@@ -2,7 +2,7 @@ package database
 
 import "errors"
 
-func (db *DB) CreateChirp(body string) (Chirp, error) {
+func (db *DB) CreateChirp(body string, userId int) (Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return Chirp{}, err
@@ -11,6 +11,7 @@ func (db *DB) CreateChirp(body string) (Chirp, error) {
 	chirp := Chirp{
 		Body: body,
 		Id:   id,
+		AuthorId: userId,
 	}
 	dbStructure.Chirps[id] = chirp
 	err = db.writeDB(dbStructure)
@@ -42,4 +43,21 @@ func (db *DB) GetChirp(id int) (Chirp, error) {
 		return Chirp{}, errors.New("chirp not found")
 	}
 	return chirp, nil
+}
+
+func (db *DB) DeleteChirp(id int) error {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return err
+	}
+	_, ok := dbStructure.Chirps[id]
+	if !ok {
+		return errors.New("chirp not found")
+	}
+	delete(dbStructure.Chirps, id)
+	err = db.writeDB(dbStructure)
+	if err != nil {
+		return err
+	}
+	return nil
 }
