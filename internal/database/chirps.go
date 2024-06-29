@@ -1,46 +1,49 @@
 package database
 
-import "errors"
+import (
+	"errors"
+	s "github.com/suarezramirof/Chirpy/shared"
+)
 
-func (db *DB) CreateChirp(body string, userId int) (Chirp, error) {
+func (db *DB) CreateChirp(body string, userId int) (s.Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
-		return Chirp{}, err
+		return s.Chirp{}, err
 	}
 	id := len(dbStructure.Chirps) + 1
-	chirp := Chirp{
-		Body: body,
-		Id:   id,
+	chirp := s.Chirp{
+		Body:     body,
+		Id:       id,
 		AuthorId: userId,
 	}
 	dbStructure.Chirps[id] = chirp
 	err = db.writeDB(dbStructure)
 	if err != nil {
-		return Chirp{}, err
+		return s.Chirp{}, err
 	}
 	return chirp, nil
 }
 
-func (db *DB) GetChirps() ([]Chirp, error) {
+func (db *DB) GetChirps() ([]s.Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return nil, err
 	}
-	chirps := make([]Chirp, 0, len(dbStructure.Chirps))
+	chirps := make([]s.Chirp, 0, len(dbStructure.Chirps))
 	for _, chirp := range dbStructure.Chirps {
 		chirps = append(chirps, chirp)
 	}
 	return chirps, nil
 }
 
-func (db *DB) GetChirp(id int) (Chirp, error) {
+func (db *DB) GetChirp(id int) (s.Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
-		return Chirp{}, err
+		return s.Chirp{}, err
 	}
 	chirp, ok := dbStructure.Chirps[id]
 	if !ok {
-		return Chirp{}, errors.New("chirp not found")
+		return s.Chirp{}, errors.New("chirp not found")
 	}
 	return chirp, nil
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 	"time"
+	"github.com/suarezramirof/Chirpy/shared"
 )
 
 type DB struct {
@@ -20,16 +21,16 @@ type RefreshToken struct {
 }
 
 type DBStructure struct {
-	Chirps        map[int]Chirp           `json:"chirps"`
+	Chirps        map[int]shared.Chirp           `json:"chirps"`
 	Users         map[int]User            `json:"users"`
 	RefreshTokens map[string]RefreshToken `json:"refresh_tokens"`
 }
 
-type Chirp struct {
-	Body string `json:"body"`
-	Id   int    `json:"id"`
-	AuthorId int `json:"author_id"`
-}
+// type Chirp struct {
+// 	Body string `json:"body"`
+// 	Id   int    `json:"id"`
+// 	AuthorId int `json:"author_id"`
+// }
 
 type User struct {
 	Email    string `json:"email"`
@@ -49,7 +50,7 @@ func NewDB(path string) (*DB, error) {
 
 func (db *DB) createDB() error {
 	dbStructure := DBStructure{
-		Chirps:        make(map[int]Chirp),
+		Chirps:        make(map[int]shared.Chirp),
 		Users:         make(map[int]User),
 		RefreshTokens: make(map[string]RefreshToken),
 	}
